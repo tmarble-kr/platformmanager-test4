@@ -1,0 +1,74 @@
+trigger:
+- none
+
+pool: 'Core Engineering'
+
+steps:
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'curl ipinfo.io'
+
+- task: NodeTool@0
+  displayName: 'Node Available on Machine'
+  inputs:
+    versionSpec: 10.x
+
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    verbose: false
+
+#- task: Npm@1
+#  displayName: 'npm install react-scripts'
+#  inputs:
+#    command: custom
+#    verbose: false
+#    customCommand: 'install -g react-scripts'
+
+#- task: Npm@1
+#  displayName: 'npm install Key Vault'
+#  inputs:
+#    command: custom
+#    verbose: false
+#    customCommand: 'install @azure/keyvault-secrets'
+
+- task: Npm@1
+  displayName: 'Create Deployable Build'
+  inputs:
+    command: custom
+    verbose: false
+    customCommand: 'run build'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'ls -l; pwd'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'zip -r ../deploy.zip *'
+    workingDirectory: '$(Build.SourcesDirectory)/dist'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'upload'
+    publishLocation: 'pipeline'
+
+# - task: AzureCLI@2
+#   inputs:
+#     azureSubscription: 'sat-instock-appdeployer'
+#     scriptType: 'bash'
+#     scriptLocation: 'inlineScript'
+#     inlineScript: 'az webapp deployment source config-zip --resource-group rg-instock-sc-dev82-eastus2 --name app-spsfpportal-dev82-eastus2 --src deploy.zip'
+
+# - task: AzureRmWebAppDeployment@4
+#   inputs:
+#     ConnectionType: 'AzureRM'
+#     azureSubscription: 'sat-instock-appdeployer'
+#     appType: 'webAppLinux'
+#     WebAppName: 'app-spsfpportal-dev82-eastus2'
+#     packageForLinux: '$(Build.SourcesDirectory)/deploy.zip'
+
